@@ -1,0 +1,83 @@
+// Location
+path(dir,distance){
+		let last_room = this.rooms[this.rooms.length-1]
+
+		let diff = ((Math.trunc(this.rooms[0].width/2)*Math.abs(dir[0])) + 
+					(Math.trunc(this.rooms[0].height/2)*Math.abs(dir[1])))
+
+		let step = dir[0]+dir[1]
+		if(step > 0){
+			step = 0
+		} else{
+			step = -1
+		}
+
+		let max = (Math.abs(dir[0])*distance+Math.abs(dir[1])*distance)-diff+step
+		
+		for(let count=0; count<max; count++){
+		this.rooms[this.rooms.length-1].path(dir[0]*count*(-1), dir[1]*count*(-1),[-dir[0],-dir[1]])
+		this.rooms[this.rooms.length-1].path(dir[0]*count*(-1), dir[1]*count*(-1),[-dir[0],-dir[1]])
+		}
+		//console.log(this.rooms[0].layers[0][12])
+		console.log(this.rooms[0].layers[0][48])
+		let x = (this.x+dir[0]*this.brick_scale*distance)+((+dir[0]*(max+1)*(-1))*this.brick_scale)
+		let y = (this.y+dir[1]*this.brick_scale*distance)+((+dir[1]*(max+1)*(-1))*this.brick_scale)
+		console.log(x,y)
+
+		for(let index_upper in this.rooms[0].layers){
+			for(let index_lower in this.rooms[0].layers[index_upper]){
+				let brick = this.rooms[0].layers[index_upper][index_lower]
+				if(brick.x == x && brick.y == y){
+					delete this.rooms[0].layers[index_upper][index_lower]
+					break
+				}
+			}
+		}
+
+		//delete this.rooms[0].layers[0][12]
+	}
+
+//Room 
+
+expand_matrix(index){
+		let x = this.bricks_index.list[index].x
+		let y = this.bricks_index.list[index].y
+
+		for(let i=0; i<3; i++){
+			for(let j=0; j<3; j++){
+				let expand_matrix = true
+				let x_ = x+(i-1)*this.brick_scale
+				let y_ = y+(j-1)*this.brick_scale
+
+				for(let index in this.inner_space.list){
+					let brick = this.inner_space.list[index]
+					if(x_==brick.x && y_==brick.y){
+						expand_matrix = false
+						break
+					}
+				}
+
+				for(let index in this.bricks_index.list){
+					let brick = this.bricks_index.list[index]
+					if(x_==brick.x && y_==brick.y){
+						expand_matrix = false
+						break
+					}
+				}
+				if(expand_matrix){ 
+				this.bricks_index.extend_list.push({x:x_, y:y_})
+				}
+			}	
+		}
+
+		this.inner_space.list.push(this.bricks_index.list[index])
+		delete this.bricks_index.list[index]
+		this.bricks_index.list = this.clear_undefined(this.bricks_index.list)
+	}
+full_expand(frequency){
+		let counter = (this.bricks_index.list.length-1)*frequency
+		for(let index=0; index<counter; index++){
+			this.expand_matrix(Math.floor(Math.random()*(this.bricks_index.list.length-1)))
+		}
+			this.apply_layer()
+	}
